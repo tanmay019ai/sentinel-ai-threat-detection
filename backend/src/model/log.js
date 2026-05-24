@@ -23,7 +23,7 @@ const Logscheme= new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
-    threatdetected:
+    threatDetected:
     {
         type:Boolean,
         default:false,

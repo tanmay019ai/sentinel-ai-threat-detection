@@ -1,7 +1,7 @@
 const threatmiddlware = (req, res, next) => {
   const bodyString = req.body == null ? "" : JSON.stringify(req.body);
   const payload = bodyString.toLowerCase();
-
+const blockedIPs = require("../services/Blockedip.js");
   let threatDetected = false;
   let threatType = "None";
 
@@ -20,6 +20,10 @@ const threatmiddlware = (req, res, next) => {
 
   req.threatDetected = threatDetected;
   req.threatType = threatType;
+   
+  if(threatDetected) {
+    blockedIPs.add(req.ip);
+  }
 
 
     next();

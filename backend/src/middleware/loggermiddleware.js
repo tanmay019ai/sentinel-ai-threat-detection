@@ -13,13 +13,13 @@ const Middleware =async(req, res, next) => {
 
         });
         console.log("Log entry created successfully",req.ip);
-        next();
+        return next();
     }
     catch (error)
     {
         console.error("Error creating log entry:", error);
+        return next();
     }
-    next();
 };
 
 
