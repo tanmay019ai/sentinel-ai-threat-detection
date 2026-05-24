@@ -1,7 +1,7 @@
 const requestTracker = {};
 
 const WINDOW_SIZE = 60 * 1000;
-const MAX_REQUESTS = 5;
+const MAX_REQUESTS = 20;
 const blockedips=require("../services/Blockedip.js")
 const rateLimitMiddleware = (req, res, next) => {
 
