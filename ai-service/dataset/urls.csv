@@ -1,0 +1,7 @@
+url,label
+https://google.com,safe
+https://github.com,safe
+https://openai.com,safe
+http://paypal-login-free.xyz,malicious
+http://verify-bank-login.ru,malicious
+http://free-money-click.com,malicious

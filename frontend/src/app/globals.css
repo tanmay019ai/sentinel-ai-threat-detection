@@ -24,3 +24,57 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@keyframes saIntroIn {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes saGlowPulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes saDashIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sa-intro-in {
+  animation: saIntroIn 700ms ease-out both;
+}
+
+.sa-glow {
+  animation: saGlowPulse 1100ms ease-in-out infinite;
+}
+
+.sa-dash-in {
+  animation: saDashIn 450ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sa-intro-in,
+  .sa-glow,
+  .sa-dash-in {
+    animation: none !important;
+  }
+}

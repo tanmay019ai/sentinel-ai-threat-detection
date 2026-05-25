@@ -12,6 +12,7 @@ const threatmiddleware=require("./middleware/threatmiddleware.js");
 const ratemiddleware=require("./middleware/ratemiddleware.js");
 const blockmiddleware=require("./middleware/blockipmiddleware.js")
 const analyticsRoutes = require("./routes/analyticsroutes.js");
+const aiRoutes = require("./routes/aiRoutes.js");
 connectdb();
 
 app.use(express.json());
@@ -26,6 +27,7 @@ app.get("/", (req, res) =>{
 });
 
 app.use("/api", analyticsRoutes);
+app.use("/api/ai", aiRoutes);
 const PORT=process.env.PORT || 5000;
 
 app.listen(PORT, () => {

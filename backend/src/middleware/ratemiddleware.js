@@ -5,6 +5,18 @@ const MAX_REQUESTS = 20;
 const blockedips=require("../services/Blockedip.js")
 const rateLimitMiddleware = (req, res, next) => {
 
+  const path = req.path || "";
+  if (
+    req.method === "GET" &&
+    (path === "/api/stream" ||
+      path === "/api/stats" ||
+      path === "/api/recent-attacks" ||
+      path === "/api/threat-stats" ||
+      path === "/api/logs")
+  ) {
+    return next();
+  }
+
   const ip = req.ip;
 
   const currentTime = Date.now();
