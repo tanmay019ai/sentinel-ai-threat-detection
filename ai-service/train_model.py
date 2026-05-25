@@ -1,45 +1,39 @@
+import joblib
 import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
-import joblib
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+
+from feature_extractor import build_feature_frame
 
 
-# Load dataset
 data = pd.read_csv("dataset/urls.csv")
 
-# Inputs
-X = data["url"]
-
-# Labels
+X = build_feature_frame(data["url"])
 y = data["label"]
 
-# Convert text into numbers
-vectorizer = TfidfVectorizer()
-X_vectorized = vectorizer.fit_transform(X)
-
-# Split dataset
 X_train, X_test, y_train, y_test = train_test_split(
-    X_vectorized,
+    X,
     y,
     test_size=0.2,
-    random_state=42
+    random_state=42,
+    stratify=y
 )
 
-# Train model
-model = LogisticRegression()
+model = Pipeline(
+    steps=[
+        ("scaler", StandardScaler()),
+        ("classifier", LogisticRegression(max_iter=200)),
+    ]
+)
 model.fit(X_train, y_train)
 
-# Predictions
 predictions = model.predict(X_test)
-
-# Accuracy
 accuracy = accuracy_score(y_test, predictions)
 print("Accuracy:", accuracy)
 
-# Save model
 joblib.dump(model, "model.pkl")
-joblib.dump(vectorizer, "vectorizer.pkl")
 
 print("Model saved successfully")

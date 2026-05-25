@@ -1,9 +1,19 @@
 const Log = require("../model/log.js");
+const ScanResult = require("../model/scanResult.js");
 const blockedIps = require("./Blockedip.js");
 const stream = require("./dashboardStream.js");
 
 async function buildDashboardPayload() {
-	const [totalRequests, totalThreats, recentAttacks, threatStats, recentLogs] = await Promise.all([
+	const [
+		totalRequests,
+		totalThreats,
+		recentAttacks,
+		threatStats,
+		recentLogs,
+		totalScans,
+		recentScans,
+		scanByPrediction,
+	] = await Promise.all([
 		Log.countDocuments(),
 		Log.countDocuments({ threatDetected: true }),
 		Log.find({ threatDetected: true }).sort({ timestamp: -1 }).limit(10),
@@ -13,6 +23,12 @@ async function buildDashboardPayload() {
 			{ $sort: { count: -1 } },
 		]),
 		Log.find({}).sort({ timestamp: -1 }).limit(25),
+		ScanResult.countDocuments(),
+		ScanResult.find({}).sort({ timestamp: -1 }).limit(10),
+		ScanResult.aggregate([
+			{ $group: { _id: "$prediction", count: { $sum: 1 } } },
+			{ $sort: { count: -1 } },
+		]),
 	]);
 
 	return {
@@ -20,10 +36,16 @@ async function buildDashboardPayload() {
 			totalRequests,
 			totalThreats,
 			blockedIps: blockedIps.size,
+			totalScans,
 		},
 		recentAttacks,
 		threatStats,
 		recentLogs,
+		scanStats: {
+			totalScans,
+			byPrediction: scanByPrediction,
+		},
+		recentScans,
 	};
 }
 
