@@ -13,6 +13,7 @@ async function buildDashboardPayload() {
 		totalScans,
 		recentScans,
 		scanByPrediction,
+		scanBySeverity,
 	] = await Promise.all([
 		Log.countDocuments(),
 		Log.countDocuments({ threatDetected: true }),
@@ -27,6 +28,10 @@ async function buildDashboardPayload() {
 		ScanResult.find({}).sort({ timestamp: -1 }).limit(10),
 		ScanResult.aggregate([
 			{ $group: { _id: "$prediction", count: { $sum: 1 } } },
+			{ $sort: { count: -1 } },
+		]),
+		ScanResult.aggregate([
+			{ $group: { _id: "$severity", count: { $sum: 1 } } },
 			{ $sort: { count: -1 } },
 		]),
 	]);
@@ -44,6 +49,7 @@ async function buildDashboardPayload() {
 		scanStats: {
 			totalScans,
 			byPrediction: scanByPrediction,
+			bySeverity: scanBySeverity,
 		},
 		recentScans,
 	};

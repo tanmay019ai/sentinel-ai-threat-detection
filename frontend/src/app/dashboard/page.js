@@ -1,6 +1,20 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 function formatTimestamp(value) {
   if (!value) return "";
@@ -21,6 +35,8 @@ export default function DashboardPage() {
   const [url, setUrl] = useState("");
   const [scanResult, setScanResult] = useState(null);
   const [loadingScan, setLoadingScan] = useState(false);
+  const [scanStats, setScanStats] = useState({});
+  const [recentScans, setRecentScans] = useState([]);
 
   useEffect(() => {
     const streamUrl = `${getApiBaseUrl()}/api/stream`;
@@ -31,6 +47,8 @@ export default function DashboardPage() {
         const payload = JSON.parse(event.data);
         setStats(payload?.stats ?? null);
         setRecentAttacks(Array.isArray(payload?.recentAttacks) ? payload.recentAttacks : []);
+        setScanStats(payload?.scanStats ?? {});
+        setRecentScans(Array.isArray(payload?.recentScans) ? payload.recentScans : []);
         setApiOnline(true);
       } catch {
         // ignore malformed payloads
@@ -64,6 +82,47 @@ export default function DashboardPage() {
     () => (typeof stats?.blockedIps === "number" ? stats.blockedIps : null),
     [stats]
   );
+  const totalScans = useMemo(
+    () => (typeof stats?.totalScans === "number" ? stats.totalScans : null),
+    [stats]
+  );
+
+  const pieData = useMemo(() => {
+    const counts = { safe: 0, malicious: 0 };
+    const rows = Array.isArray(scanStats?.byPrediction) ? scanStats.byPrediction : [];
+    rows.forEach((row) => {
+      const key = String(row?._id || "").toLowerCase();
+      if (key === "safe") counts.safe = row?.count ?? 0;
+      if (key === "malicious") counts.malicious = row?.count ?? 0;
+    });
+
+    return [
+      { name: "Safe", value: counts.safe },
+      { name: "Malicious", value: counts.malicious },
+    ];
+  }, [scanStats]);
+
+  const severityData = useMemo(() => {
+    const order = ["Low", "Medium", "High", "Critical"];
+    const map = new Map(order.map((level) => [level, 0]));
+    const rows = Array.isArray(scanStats?.bySeverity) ? scanStats.bySeverity : [];
+    rows.forEach((row) => {
+      const label = row?._id || "Unknown";
+      map.set(label, row?.count ?? 0);
+    });
+
+    return order.map((level) => ({ severity: level, count: map.get(level) ?? 0 }));
+  }, [scanStats]);
+
+  const trendData = useMemo(() => {
+    if (!recentScans?.length) return [];
+    return [...recentScans]
+      .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+      .map((scan, index) => ({
+        index: index + 1,
+        confidence: Math.round((scan?.confidence || 0) * 100),
+      }));
+  }, [recentScans]);
 
   const handleScan = async () => {
     if (!url) return;
@@ -166,6 +225,62 @@ export default function DashboardPage() {
               <div className="text-sm text-slate-300">Blocked IPs</div>
               <div className="mt-2 text-3xl font-semibold">{blockedIps ?? "—"}</div>
               <div className="mt-2 text-xs text-slate-400">Currently blocked entries</div>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-5 transition-transform duration-200 hover:-translate-y-0.5">
+              <div className="text-sm text-slate-300">Total Scans</div>
+              <div className="mt-2 text-3xl font-semibold">{totalScans ?? "—"}</div>
+              <div className="mt-2 text-xs text-slate-400">All-time AI scans</div>
+        </div>
+      </section>
+
+      <section className="mt-10 grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-lg">
+          <h2 className="text-xl font-semibold mb-6">Threat Distribution</h2>
+          <div className="h-[320px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={pieData} dataKey="value" nameKey="name" outerRadius={120}>
+                  <Cell fill="#22c55e" />
+                  <Cell fill="#ef4444" />
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-lg">
+          <h2 className="text-xl font-semibold mb-6">Threat Severity</h2>
+          <div className="h-[320px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={severityData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="severity" />
+                <YAxis allowDecimals={false} />
+                <Tooltip />
+                <Bar dataKey="count" fill="#f97316" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-lg xl:col-span-2">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">Threat Trend</h2>
+            <span className="text-xs text-slate-400">Recent scan confidence</span>
+          </div>
+          <div className="h-[280px] mt-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={trendData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="index" />
+                <YAxis allowDecimals={false} domain={[0, 100]} />
+                <Tooltip />
+                <Line type="monotone" dataKey="confidence" stroke="#38bdf8" strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </section>
 
