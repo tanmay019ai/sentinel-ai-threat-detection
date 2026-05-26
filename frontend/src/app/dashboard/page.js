@@ -146,6 +146,19 @@ export default function DashboardPage() {
     }
   };
 
+  const htmlIndicators = useMemo(() => {
+    const html = scanResult?.html_analysis;
+    if (!html) return [];
+    return [
+      { label: "Forms", value: html?.form_count ?? 0 },
+      { label: "Iframes", value: html?.iframe_count ?? 0 },
+      { label: "Scripts", value: html?.script_count ?? 0 },
+      { label: "External scripts", value: html?.external_script_count ?? 0 },
+      { label: "Password inputs", value: html?.password_input_count ?? 0 },
+      { label: "Hidden elements", value: html?.hidden_element_count ?? 0 },
+    ];
+  }, [scanResult]);
+
   return (
     <div className="sa-dash-in">
       <header className="flex flex-col gap-2">
@@ -154,7 +167,7 @@ export default function DashboardPage() {
       </header>
 
       <section className="mt-8">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-lg">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-lg">
           <h2 className="text-xl font-semibold mb-4">AI Website Scanner</h2>
           <div className="flex flex-col md:flex-row gap-4">
             <input
@@ -176,7 +189,7 @@ export default function DashboardPage() {
 
       {scanResult ? (
         <section className="mt-6">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-lg">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-lg">
             <h2 className="text-xl font-semibold mb-4">Scan Result</h2>
             <div className="space-y-3">
               <div>
@@ -204,11 +217,25 @@ export default function DashboardPage() {
                 <p className="mt-1 font-bold text-orange-400">{scanResult.severity}</p>
               </div>
             </div>
+
+            {htmlIndicators.length ? (
+              <div className="mt-5 rounded-xl border border-white/10 bg-slate-950/40 p-4">
+                <div className="text-xs uppercase tracking-[0.2em] text-slate-400">HTML analysis</div>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  {htmlIndicators.map((item) => (
+                    <div key={item.label} className="flex items-center justify-between rounded-lg bg-white/5 px-3 py-2 text-sm">
+                      <span className="text-slate-300">{item.label}</span>
+                      <span className="text-slate-100">{item.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
         </section>
       ) : null}
 
-      <section className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <section className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-2xl border border-white/10 bg-white/5 p-5 transition-transform duration-200 hover:-translate-y-0.5">
               <div className="text-sm text-slate-300">Total Requests</div>
               <div className="mt-2 text-3xl font-semibold">{totalRequests ?? "—"}</div>
@@ -235,9 +262,9 @@ export default function DashboardPage() {
       </section>
 
       <section className="mt-10 grid grid-cols-1 gap-6 xl:grid-cols-2">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-lg">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-lg">
           <h2 className="text-xl font-semibold mb-6">Threat Distribution</h2>
-          <div className="h-[320px]">
+          <div className="h-[220px] sm:h-[260px] lg:h-[320px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie data={pieData} dataKey="value" nameKey="name" outerRadius={120}>
@@ -250,9 +277,9 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-lg">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-lg">
           <h2 className="text-xl font-semibold mb-6">Threat Severity</h2>
-          <div className="h-[320px]">
+          <div className="h-[220px] sm:h-[260px] lg:h-[320px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={severityData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -265,7 +292,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-lg xl:col-span-2">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-lg xl:col-span-2">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Threat Trend</h2>
             <span className="text-xs text-slate-400">Recent scan confidence</span>

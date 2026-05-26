@@ -72,7 +72,7 @@ export default function LogsPage() {
 					<div className="text-xs text-slate-400">Showing {totalShown || "—"}</div>
 				</div>
 
-				<div className="mt-4 space-y-2">
+				<div className="mt-4 space-y-2 overflow-x-auto">
 					{logs?.length ? (
 						logs.map((row) => (
 							<div

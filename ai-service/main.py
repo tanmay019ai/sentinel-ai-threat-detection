@@ -4,6 +4,7 @@ import joblib
 from fastapi import FastAPI, HTTPException
 
 from feature_extractor import build_feature_frame, extract_url_features
+from html_analyzer import analyze_website
 from html_scanner import fetch_and_analyze
 
 app = FastAPI()
@@ -37,6 +38,8 @@ def predict(data: dict):
     probabilities = model.predict_proba(features)[0]
     confidence = float(max(probabilities))
 
+    html_analysis = analyze_website(url)
+
     severity = "Low"
     if confidence > 0.9:
         severity = "Critical"
@@ -49,7 +52,8 @@ def predict(data: dict):
         "url": url,
         "prediction": prediction,
         "confidence": round(confidence, 4),
-        "severity": severity
+        "severity": severity,
+        "html_analysis": html_analysis
     }
 
 
